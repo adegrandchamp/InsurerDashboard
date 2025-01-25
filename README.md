@@ -4,3 +4,15 @@ Work associated with the DSC672 Capstone project. Repo will be comprehensive and
 Group project members: Alexandra DeGrandchamp, Brad Gott, Jessica Murray,  Griffin Reichmuth
 
 Work completed January-March 2025.
+
+Work completed:
+--created git repository
+--uploaded data files to S3 bucket
+
+Work still to do:
+--set up dbt
+--upload sources to RDS
+--design data model
+--clean data
+--ML work
+--visualization work

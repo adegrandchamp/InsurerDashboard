@@ -1,0 +1,152 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Intermediary cleansing of pharm_pde source data",
+  assertions: {
+    nonNull: ["pde_id","bene_id","prscrbr_id","prod_srvc_id"],
+    uniqueKey: ["pde_id"]
+  }
+}
+
+select 
+--id fields
+      pde_id
+    , bene_id
+    , prscrbr_id
+    , prod_srvc_id
+--pde attributes
+    , srvc_dt
+    , extract(year from srvc_dt)        as srvc_yr
+    , extract(month from srvc_dt)       as srvc_mth
+    , pd_dt
+    , extract(year from pd_dt)          as pd_yr
+    , extract(month from pd_dt)         as pd_mth
+    , date_diff(pd_dt,srvc_dt,day)      as service_to_pay_duration
+    , plan_cntrct_rec_id --this will not be transformed, all plans in synthetic are identical first character
+    , case
+        when cmpnd_cd = 2
+        then True 
+        else False
+        end                             as cmpnd_cd_bool
+    , case 
+        when daw_prod_slctn_cd = 0
+            then 'No Selection Indicated'
+        when daw_prod_slctn_cd = 1
+            then 'No Substitution Allowed (DAW)'
+        when daw_prod_slctn_cd = 2
+            then 'Substitution Allowed, Patient Requested Brand'
+        when daw_prod_slctn_cd = 3 
+            then 'Substitution Allowed, Pharmacist Selected Brand'
+        when daw_prod_slctn_cd = 4 
+            then 'Substitution Allowed, Generic Out of Stock'
+        when daw_prod_slctn_cd = 5
+            then 'Substitution Allowed, Substitution Dispensed'
+        when daw_prod_slctn_cd = 6 
+            then 'Override'
+        when daw_prod_slctn_cd = 7
+            then 'No Substitution Allowed, Brand Mandated'
+        when daw_prod_slctn_cd = 8
+            then 'Substitution Allowed, No Generic On Market'
+        else 'Other'
+        end                             as daw_prod_slctn_cat
+    , case 
+        when daw_prod_slctn_cd in (2,3,4,5,8)
+            then True 
+        else False 
+        end                             as generic_substitution_allowed
+    , case 
+        when daw_prod_slctn_cd = 5
+            then True 
+        else False
+        end                             as generic_substitution_taken
+    , case 
+        when daw_prod_slctn_cd in (1,7)
+            then True 
+        else False 
+        end                             as drug_dispensed_daw
+    , case 
+        when drug_cvrg_stus_cd = 'C'
+            then 'Covered'
+        when drug_cvrg_stus_cd = 'E'
+            then 'Supplemental'
+        else 'OTC'
+        end                             as drug_cvrg_status_cat --all rows are just C 
+    , case 
+        when ctstrphc_cvrg_cd = 'A'
+            then 'Catastrophic Coverage Triggered'
+        when ctstrphc_cvrg_cd = 'C'
+            then 'Plan in Catastrophic Coverage'
+        else 'Not in Catastrophic Coverage'
+        end                             as catastrophic_coverage_status
+    , case
+        when ctstrphc_cvrg_cd in ('A','C')
+            then True
+        else False 
+        end                             as catastrophic_coverage_bool
+    , case 
+        when rx_orgn_cd = 0
+            then 'Not Specified'
+        when rx_orgn_cd = 3
+            then 'Electronic'
+        when rx_orgn_cd = 4
+            then 'Fax'
+        else 'Not Specified'
+        end                             as rx_orgn_cat
+    , case 
+        when brnd_gnrc_cd = 'B'
+            then 'Brand'
+        when brnd_gnrc_cd = 'G'
+            then 'Generic'
+        else 'Not Specified'
+        end                             as brnd_gnrc_cat
+    , case
+        when brnd_gnrc_cd = 'B'
+            then True 
+        else False 
+        end                             as drug_is_brand_name
+    , case
+        when brnd_gnrc_cd = 'G'
+            then True 
+        else False 
+        end                             as drug_is_generic
+    , case 
+        when phrmcy_srvc_type_cd = 1
+            then 'Community/Retail Pharmacy'
+        when phrmcy_srvc_type_cd = 2
+            then 'Compounding Pharmacy'
+        when phrmcy_srvc_type_cd = 3
+            then 'Home Infusion Therapy Provider'
+        when phrmcy_srvc_type_cd = 4
+            then 'Institutional Pharmacy'
+        when phrmcy_srvc_type_cd = 5
+            then 'Long-Term Care Pharmacy'
+        when phrmcy_srvc_type_cd = 6
+            then 'Mail Order Pharmacy'
+        when phrmcy_srvc_type_cd = 7
+            then 'MCO Pharmacy'
+        else 'Other Pharmacy'
+        end                             as phrmcy_type_cat
+    , case 
+        when ptnt_rsdnc_cd = 1
+            then 'Home'
+        when ptnt_rsdnc_cd = 14
+            then 'Homeless'
+        else 'Other'
+        end                             as ptnt_rsndc_cat
+    , case 
+        when ptnt_rsdnc_cd = 1
+            then True 
+        else False 
+        end                             as patient_resides_at_home
+    , cast(fill_num as string)          as fill_num_cat
+--pde measures
+    , qty_dspnsd_num
+    , days_suply_num
+    , gdc_abv_oopt_amt
+    , gdc_blw_oopt_amt
+    , ptnt_pay_amt
+    , plro_amt
+    , round(ptnt_pay_amt + plro_amt,2)           as patient_total_liability
+    , cvrd_d_plan_pd_amt 
+    , tot_rx_cst_amt
+from ${ref("pharm_pde")}

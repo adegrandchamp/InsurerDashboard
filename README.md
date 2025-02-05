@@ -8,11 +8,10 @@ Work completed January-March 2025.
 Work completed:
 --created git repository
 --uploaded data files to S3 bucket
+--set up BigQuery/Dataform
+--design data model
 
 Work still to do:
---set up dbt
---upload sources to RDS
---design data model
 --clean data
 --ML work
 --visualization work

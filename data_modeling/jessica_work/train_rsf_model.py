@@ -11,6 +11,7 @@ import sys
 from load_table import get_train_test_split
 from sksurv.ensemble import RandomSurvivalForest
 from sklearn.impute import SimpleImputer
+<<<<<<< HEAD
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sksurv.metrics import concordance_index_censored
 from sklearn.inspection import permutation_importance
@@ -61,17 +62,35 @@ best_model = grid_search.best_estimator_
 val_score_outer = best_model.score(X_val,y_val)
 print(f"Concordance index on outer validation: {val_score_outer:.3f}")
 
+=======
+from sksurv.ensemble import RandomSurvivalForest
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = get_train_test_split()
+
+#Training the model
+rsf = RandomSurvivalForest(n_estimators=100, min_samples_split=3, max_depth=10, random_state=42, n_jobs=-1, verbose=2)
+print("Training")
+rsf.fit(X_train, y_train)
+print("Training completed")
+
+>>>>>>> cedc60708c4ab07855d054e92076d29f7ea2e6b5
 # Print size because model is getting too large to save locally
 print(f"Serialized model size: ", len(pickle.dumps(rsf, -1)) / (1024 * 1024), " MB")
 
 # Save the model to a file so we don't need to train again
+<<<<<<< HEAD
 model_file_name = 'rsf_trained_model2.pkl'
+=======
+model_file_name = 'rsf_trained_model.pkl'
+>>>>>>> cedc60708c4ab07855d054e92076d29f7ea2e6b5
 with open(model_file_name, 'wb') as file:
     pickle.dump(rsf, file,  -1)
 print("Saved model")
 
 #Evaluating
 print("Scoring model on sample of test")
+<<<<<<< HEAD
 X_test_sampled = X_test[:min(10000,len(X_test))]
 y_test_sampled = y_test[:min(10000,len(y_test))]
 score = rsf.score(X_test_sampled, y_test_sampled)
@@ -91,3 +110,9 @@ for i in sorted_idx:
 
 
 
+=======
+X_test_sampled = X_test[:1000]
+y_test_sampled = y_test[:1000]
+score = rsf.score(X_test_sampled, y_test_sampled)
+print(f"Concordance index: {score:.4f}")
+>>>>>>> cedc60708c4ab07855d054e92076d29f7ea2e6b5

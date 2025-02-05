@@ -1,13 +1,17 @@
 import pickle
 from load_table import get_train_test_split
+<<<<<<< HEAD
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+=======
+>>>>>>> cedc60708c4ab07855d054e92076d29f7ea2e6b5
 
 rsf = None
 model_file_name = 'rsf_trained_model.pkl'
 with open(model_file_name, 'rb') as file:  
     rsf = pickle.load(file)
 
+<<<<<<< HEAD
 #print("Model parameters:",rsf.get_params())
 X_train, X_val, X_test, y_train, y_val, y_test= get_train_test_split()
 
@@ -47,3 +51,10 @@ print("Data saved")
 
 
 
+=======
+X_train, X_test, y_train, y_test = get_train_test_split()
+
+print("Scoring model")
+score = rsf.score(X_test, y_test)
+print(f"Concordance index: {score:.4f}")
+>>>>>>> cedc60708c4ab07855d054e92076d29f7ea2e6b5

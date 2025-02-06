@@ -1,0 +1,46 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Interim assembly of dim_beneficiary_locations, with one line per beneficiary and benefit year.",
+  assertions: {
+    nonNull: ["bene_location_key"],
+    uniqueKey: ["bene_location_key"]
+  }
+}
+
+with all_benes as (
+    select * from ${ref("int_beneficiary_15")}
+    union all 
+    select * from ${ref("int_beneficiary_16")}
+    union all 
+    select * from ${ref("int_beneficiary_17")}
+    union all 
+    select * from ${ref("int_beneficiary_18")}
+    union all 
+    select * from ${ref("int_beneficiary_19")}
+    union all 
+    select * from ${ref("int_beneficiary_20")}
+    union all 
+    select * from ${ref("int_beneficiary_21")}
+    union all 
+    select * from ${ref("int_beneficiary_22")}
+    union all 
+    select * from ${ref("int_beneficiary_23")}
+    union all 
+    select * from ${ref("int_beneficiary_24")}
+    union all 
+    select * from ${ref("int_beneficiary_25")}
+)
+
+select 
+      sha256(concat(bene_id,cast(file_year as string))) as bene_location_key
+    , bene_id
+    , file_year         as benefit_yr
+    , zip_cd
+    , fips_at_end_of_year
+    , state_code
+from all_benes
+
+
+
+

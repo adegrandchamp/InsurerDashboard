@@ -1,7 +1,7 @@
 config {
   type: "table",
-  schema: "capstone_data_model",
-  description: "Final assembly of dim_beneficiaries, with one line per beenficiary and data from the last year the beneficiary appeared in the raw files",
+  schema: "capstone_intermediaries",
+  description: "Interim assembly of dim_beneficiaries, with one line per beneficiary and data from the last year the beneficiary appeared in the raw files",
   assertions: {
     nonNull: ["bene_id"],
     uniqueKey: ["bene_id"]

@@ -8,6 +8,15 @@ config {
   }
 }
 
+with ssa_to_fips as (
+  select 
+      cast(ssa_code as integer) as ssa_code_int
+    , max(cast(fipscounty as integer))  as fips_code_int
+  from ${ref("ssa_to_fips_crosswalk")}
+  where ssa_code != 'ssa_code'
+  group by ssa_code_int
+)
+
 select
     bene_id
   , bene_birth_dt
@@ -16,24 +25,24 @@ select
       when bene_death_dt is not null 
         then True 
       else False 
-      end                             as beneficiary_is_deceased
+      end                                                 as beneficiary_is_deceased
   , case 
       when sex_ident_cd = 1
         then 'Male'
       when sex_ident_cd = 2
         then 'Female'
       else 'Sex Unknown'
-      end                             as sex_ident_cat
+      end                                                 as sex_ident_cat
   , case 
       when sex_ident_cd = 1
         then True
       else False
-      end                             as beneficiary_is_male
+      end                                                 as beneficiary_is_male
   , case 
       when sex_ident_cd = 2
         then True 
       else False  
-      end                             as beneficiary_is_female
+      end                                                 as beneficiary_is_female
   , case 
       when bene_race_cd = 1 
         then 'Non-Hispanic White'
@@ -48,7 +57,7 @@ select
       when bene_race_cd = 6
         then 'Indigenous'
       else 'Unknown'
-      end                             as bene_race_cat
+      end                                                 as bene_race_cat
     , case 
         when rti_race_cd = 1
           then 'Non-Hispanic White'
@@ -63,42 +72,48 @@ select
         when rti_race_cd = 6
           then 'Indigenous'
         else 'Unknown'
-        end                           as rti_race_cat
+        end                                               as rti_race_cat
     , case 
         when bene_race_cd = 1 or rti_race_cd = 1
           then True 
         else False 
-        end                           as beneficiary_is_white
+        end                                               as beneficiary_is_white
     , case 
         when bene_race_cd = 1 or rti_race_cd = 1
           then False 
         else True 
-        end                           as beneficiary_is_not_white
+        end                                               as beneficiary_is_not_white
     , case 
         when bene_race_cd = 2 or rti_race_cd = 2
           then True 
         else False 
-        end                           as beneficiary_is_black
+        end                                               as beneficiary_is_black
     , case
         when bene_race_cd = 4 or rti_race_cd = 4
           then True 
         else False 
-        end                           as beneficiary_is_asian
+        end                                               as beneficiary_is_asian
     , case 
         when bene_race_cd = 5 or rti_race_cd = 5
           then True 
         else False 
-        end                           as beneficiary_is_hispanic
+        end                                               as beneficiary_is_hispanic
     , case 
         when bene_race_cd = 6 or rti_race_cd = 6
           then True 
         else False 
-        end                           as beneficiary_is_indigenous
+        end                                               as beneficiary_is_indigenous
     , case 
         when bene_race_cd = 3 or rti_race_cd = 3
           then True 
         else False 
-        end                           as beneficiary_is_other_race
+        end                                               as beneficiary_is_other_race
     , covstart
-    , 2019                            as file_year
-from ${ref("bene_19")}
+    , 2019                                                as file_year
+    , zip_cd
+    , coalesce(state_cnty_fips_cd_12,stf.fips_code_int)   as fips_at_end_of_year
+    , county_cd
+    , state_code
+from ${ref("bene_19")} b
+left join ssa_to_fips stf 
+  on b.county_cd = stf.ssa_code_int

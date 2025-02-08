@@ -1,0 +1,69 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Dimension for benefits by beneficiary and year",
+  assertions: {
+    nonNull: ["benefit_yr_key"],
+    uniqueKey: ["benefit_yr_key"]
+  }
+}
+
+with all_benefits_annual as (
+    select * from  ${ref("int_benefits_ann_15")}
+    union all 
+    select * from  ${ref("int_benefits_ann_16")}
+    union all 
+    select * from  ${ref("int_benefits_ann_17")}
+    union all 
+    select * from  ${ref("int_benefits_ann_18")}
+    union all 
+    select * from  ${ref("int_benefits_ann_19")}
+    union all 
+    select * from  ${ref("int_benefits_ann_20")}
+    union all 
+    select * from  ${ref("int_benefits_ann_21")}
+    union all 
+    select * from  ${ref("int_benefits_ann_22")}
+    union all 
+    select * from  ${ref("int_benefits_ann_23")}
+    union all 
+    select * from  ${ref("int_benefits_ann_24")}
+    union all 
+    select * from  ${ref("int_benefits_ann_25")}
+)
+
+select
+      benefit_yr_key
+    , bene_id 
+    , benefit_year
+    , entlmt_rsn_orig_cat
+    , qualified_oasi_orig
+    , qualified_dib_orig
+    , qualified_esrd_orig
+    , entlmt_rsn_curr_cat
+    , qualified_oasi_curr
+    , qualified_dib_curr
+    , qualified_esrd_curr
+    --, qualified_pbid_curr --always false, omit
+    , esrd_bool
+    , bene_hi_cvrage_tot_mons
+    , bene_smi_cvrage_tot_mons
+    , ptd_plan_cvrg_mons
+    , case 
+        when ptc_coalesced_plan_id is not null 
+            then True 
+        else False 
+        end                                                 as enrolled_part_c --move this to dim calculation, can't refer in same script as defined
+    , crnt_bic_cat
+    , case 
+        when lower(crnt_bic_cat) like '%primary%'
+            then True 
+        when lower(crnt_bic_cat) like '%employee%'
+            then True 
+        else False 
+        end                                                 as is_primary_claimant
+    , bene_state_buyin_tot_mons
+    , bene_hmo_cvrage_tot_mons
+    , rds_cvrg_mons
+    , has_rds_cvrg
+from all_benefits_annual 

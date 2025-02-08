@@ -16,7 +16,9 @@ select
   , srvc_dt 
   , srvc_yr
   , srvc_mth
-  , sha256(concat(bene_id,cast(srvc_yr as string))) as bene_location_key
+  , sha256(concat(bene_id,cast(srvc_yr as string)))                          as bene_location_key
+  , sha256(concat(bene_id,cast(srvc_yr as string)))                          as benefit_yr_key
+  , sha256(concat(bene_id,cast(srvc_yr as string),cast(srvc_mth as string))) as benefits_mth_key
   , pd_dt 
   , pd_yr 
   , pd_mth

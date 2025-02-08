@@ -8,7 +8,8 @@
     "zip_to_fips", 
     "bic_lookup",
     "npi_taxonomy",
-    "npi_full_list"
+    "npi_full_list",
+    "clm_carr_names"
 ].forEach((name) =>
     declare({
         databse: "spatial-earth-449020-m3",

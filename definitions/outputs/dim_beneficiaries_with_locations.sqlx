@@ -1,0 +1,60 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Assembly of dim_beneficiaries combined with dim_locations on int_beneficiary_locations, with one line per beneficiary/year.",
+  assertions: {
+    nonNull: ["bene_location_key"],
+    uniqueKey: ["bene_location_key"]
+  }
+}
+
+--to get the most location coverage, bringing in distinct counties and states
+--will use zip-based details first, but coalesce on these fields if available
+with distinct_counties as (
+    select 
+        county 
+        , county_name 
+    from ${ref("int_locations")}
+    group by 1,2
+),
+distinct_states as (
+    select 
+        state_code 
+        , state_name
+    from ${ref("int_locations")}
+    group by 1,2
+)
+
+select 
+      bl.bene_location_key
+    , bl.bene_id 
+    , bl.benefit_yr
+    , bl.zip_cd 
+    , coalesce(loc_zip.city,'No City Available')            as beneficiary_city
+    , coalesce(loc_zip.county_name, loc_fips.county_name)   as beneficiary_county
+    , coalesce(loc_zip.state_name, loc_st.state_name)       as beneficiary_state
+    , bene.bene_birth_dt
+    --, bene.bene_death_dt  --this is always null in our dataset
+    , bene.beneficiary_is_deceased
+    , bene.sex_ident_cat
+    , bene.beneficiary_is_male
+    , bene.beneficiary_is_female
+    , bene.bene_race_cat
+    , bene.rti_race_cat
+    , bene.beneficiary_is_white
+    , bene.beneficiary_is_not_white
+    , bene.beneficiary_is_black
+    , bene.beneficiary_is_asian_or_pi
+    , bene.beneficiary_is_hispanic
+    , bene.beneficiary_is_indigenous
+    , bene.beneficiary_is_other_race
+    , bene.covstart
+from ${ref("int_beneficiary_locations")} bl 
+left join ${ref("int_locations")} loc_zip
+    on cast(bl.zip_cd as string) = loc_zip.zip_cd
+left join distinct_counties loc_fips 
+    on cast(bl.fips_at_end_of_year as string) = loc_fips.county
+left join distinct_states loc_st 
+    on bl.state_code = loc_st.state_code
+left join ${ref("int_base_beneficiaries")} bene 
+    on bl.bene_id = bene.bene_id

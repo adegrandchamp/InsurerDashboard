@@ -1,0 +1,47 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Assembly of dim_part_d_events for pharmaceutical claims, with one line per event and foreign keys to dim_beneficiary_with_locations, dim_drugs (tbd)",
+  assertions: {
+    nonNull: ["pde_id"],
+    uniqueKey: ["pde_id"]
+  }
+}
+
+select 
+    pde_id 
+  , bene_id
+  , prscrbr_id 
+  , prod_srvc_id
+  , srvc_dt 
+  , srvc_yr
+  , srvc_mth
+  , sha256(concat(bene_id,cast(srvc_yr as string))) as bene_location_key
+  , pd_dt 
+  , pd_yr 
+  , pd_mth
+  , plan_cntrct_rec_id
+  , cmpnd_cd_bool
+  , daw_prod_slctn_cat
+  , generic_substitution_allowed
+  , generic_substitution_taken
+  , drug_dispensed_daw
+  , drug_cvrg_status_cat
+  , catastrophic_coverage_bool
+  , rx_orgn_cat
+  , brnd_gnrc_cat
+  , drug_is_brand_name
+  , drug_is_generic
+  , phrmcy_type_cat
+  , ptnt_rsndc_cat
+  , patient_resides_at_home
+  , fill_num_cat
+  , qty_dspnsd_num
+  , days_suply_num
+  , gdc_abv_oopt_amt
+  , gdc_blw_oopt_amt
+  , plro_amt
+  , patient_total_liability
+  , cvrd_d_plan_pd_amt
+  , tot_rx_cst_amt
+from ${ref("int_pde_cleaning")}

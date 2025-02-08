@@ -7,7 +7,8 @@
     "state_code_lookup",
     "zip_to_fips", 
     "bic_lookup",
-    "npi_taxonomy"
+    "npi_taxonomy",
+    "npi_full_list"
 ].forEach((name) =>
     declare({
         databse: "spatial-earth-449020-m3",

@@ -1,0 +1,55 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Dimension for benefits by beneficiary, year, and calendar month",
+  assertions: {
+    nonNull: ["benefit_mth_key"],
+    uniqueKey: ["benefit_mth_key"]
+  }
+}
+
+with all_benefits_month as (
+    select * from  ${ref("int_benefits_mth_15")}
+    union all 
+    select * from  ${ref("int_benefits_mth_16")}
+    union all 
+    select * from  ${ref("int_benefits_mth_17")}
+    union all 
+    select * from  ${ref("int_benefits_mth_18")}
+    union all 
+    select * from  ${ref("int_benefits_mth_19")}
+    union all 
+    select * from  ${ref("int_benefits_mth_20")}
+    union all 
+    select * from  ${ref("int_benefits_mth_21")}
+    union all 
+    select * from  ${ref("int_benefits_mth_22")}
+    union all 
+    select * from  ${ref("int_benefits_mth_23")}
+    union all 
+    select * from  ${ref("int_benefits_mth_24")}
+    union all 
+    select * from  ${ref("int_benefits_mth_25")}
+)
+
+select
+      benefit_mth_key
+    , bene_id 
+    , benefit_year
+    , benefit_month
+    , has_ptc_for_month
+    , has_ptd_for_month
+    , has_employer_subsidy_for_month
+    , case 
+        when month_dual_status_code = 'AA'
+            then 'NA'
+        when month_dual_status_code is null 
+            then 'NA'
+        else month_dual_status_code
+        end                                 as month_dual_status_code_clean
+    , has_full_dual_status
+    , has_partial_dual_status
+    , is_qmb_only
+    , cost_share_premium_subsidy_percent
+    , lower(cost_share_copay_cat)           as cost_share_copay_cat
+from all_benefits_month 

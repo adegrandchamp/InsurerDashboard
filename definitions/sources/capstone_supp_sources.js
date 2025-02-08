@@ -1,6 +1,7 @@
 [
     "icd_diagnoses",
     "seed_months_of_year",
+    "seed_months_numeric",
     "seed_years",
     "ssa_to_fips_crosswalk",
     "state_code_lookup",

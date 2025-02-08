@@ -1,0 +1,272 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Intermediary cleansing for benefits by beneficiary and month, 2017",
+  assertions: {
+    nonNull: ["benefit_mth_key"],
+    uniqueKey: ["benefit_mth_key"]
+  }
+}
+
+select 
+      sha256(concat(bene.bene_id,cast(2017 as string),mths.month_num))      as benefit_mth_key
+    , bene.bene_id 
+    , 2017                                                                  as benefit_year
+    , mths.month_num                                                        as benefit_month
+    , case 
+        when ptc_cntrct_id_01 is not null and mths.month_num = 1 then true 
+        when ptc_cntrct_id_02 is not null and mths.month_num = 2 then true 
+        when ptc_cntrct_id_03 is not null and mths.month_num = 3 then true 
+        when ptc_cntrct_id_04 is not null and mths.month_num = 4 then true 
+        when ptc_cntrct_id_05 is not null and mths.month_num = 5 then true 
+        when ptc_cntrct_id_06 is not null and mths.month_num = 6 then true 
+        when ptc_cntrct_id_07 is not null and mths.month_num = 7 then true 
+        when ptc_cntrct_id_08 is not null and mths.month_num = 8 then true 
+        when ptc_cntrct_id_09 is not null and mths.month_num = 9 then true 
+        when ptc_cntrct_id_10 is not null and mths.month_num = 10 then true 
+        when ptc_cntrct_id_11 is not null and mths.month_num = 11 then true 
+        when ptc_cntrct_id_12 is not null and mths.month_num = 12 then true 
+        else false 
+        end                                                                 as has_ptc_for_month
+    , case 
+        when ptd_cntrct_id_01 is not null and mths.month_num = 1 then true 
+        when ptd_cntrct_id_02 is not null and mths.month_num = 2 then true 
+        when ptd_cntrct_id_03 is not null and mths.month_num = 3 then true 
+        when ptd_cntrct_id_04 is not null and mths.month_num = 4 then true 
+        when ptd_cntrct_id_05 is not null and mths.month_num = 5 then true 
+        when ptd_cntrct_id_06 is not null and mths.month_num = 6 then true 
+        when ptd_cntrct_id_07 is not null and mths.month_num = 7 then true 
+        when ptd_cntrct_id_08 is not null and mths.month_num = 8 then true 
+        when ptd_cntrct_id_09 is not null and mths.month_num = 9 then true 
+        when ptd_cntrct_id_10 is not null and mths.month_num = 10 then true 
+        when ptd_cntrct_id_11 is not null and mths.month_num = 11 then true 
+        when ptd_cntrct_id_12 is not null and mths.month_num = 12 then true 
+        else false 
+        end                                                                 as has_ptd_for_month
+    , case 
+        when rds_ind_01 = 'Y' and mths.month_num = 1 then true 
+        when rds_ind_02 = 'Y' and mths.month_num = 2 then true 
+        when rds_ind_03 = 'Y' and mths.month_num = 3 then true 
+        when rds_ind_04 = 'Y' and mths.month_num = 4 then true 
+        when rds_ind_05 = 'Y' and mths.month_num = 5 then true 
+        when rds_ind_06 = 'Y' and mths.month_num = 6 then true 
+        when rds_ind_07 = 'Y' and mths.month_num = 7 then true 
+        when rds_ind_08 = 'Y' and mths.month_num = 8 then true 
+        when rds_ind_09 = 'Y' and mths.month_num = 9 then true 
+        when rds_ind_10 = 'Y' and mths.month_num = 10 then true 
+        when rds_ind_11 = 'Y' and mths.month_num = 11 then true 
+        when rds_ind_12 is true and mths.month_num = 12 then true 
+        else false 
+        end                                                                 as has_employer_subsidy_for_month
+    , case 
+        when mths.month_num = 1 then dual_stus_cd_01
+        when mths.month_num = 2 then dual_stus_cd_02
+        when mths.month_num = 3 then dual_stus_cd_03
+        when mths.month_num = 4 then dual_stus_cd_04
+        when mths.month_num = 5 then dual_stus_cd_05
+        when mths.month_num = 6 then dual_stus_cd_06
+        when mths.month_num = 7 then dual_stus_cd_07
+        when mths.month_num = 8 then dual_stus_cd_08
+        when mths.month_num = 9 then dual_stus_cd_09
+        when mths.month_num = 10 then dual_stus_cd_10
+        when mths.month_num = 11 then dual_stus_cd_11
+        when mths.month_num = 12 then dual_stus_cd_12
+        else 'Invalid Row'
+        end                                                                 as month_dual_status_code
+    , case 
+        when dual_stus_cd_01 in ('02','04','08') and mths.month_num = 1 then true 
+        when dual_stus_cd_02 in ('02','04','08') and mths.month_num = 2 then true 
+        when dual_stus_cd_03 in ('02','04','08') and mths.month_num = 3 then true 
+        when dual_stus_cd_04 in ('02','04','08') and mths.month_num = 4 then true 
+        when dual_stus_cd_05 in ('02','04','08') and mths.month_num = 5 then true 
+        when dual_stus_cd_06 in ('02','04','08') and mths.month_num = 6 then true 
+        when dual_stus_cd_07 in ('02','04','08') and mths.month_num = 7 then true 
+        when dual_stus_cd_08 in ('02','04','08') and mths.month_num = 8 then true 
+        when dual_stus_cd_09 in ('02','04','08') and mths.month_num = 9 then true 
+        when dual_stus_cd_10 in ('02','04','08') and mths.month_num = 10 then true 
+        when dual_stus_cd_11 in ('02','04','08') and mths.month_num = 11 then true 
+        when dual_stus_cd_12 in ('02','04','08') and mths.month_num = 12 then true 
+        else false 
+        end                                                             as has_full_dual_status
+    , case 
+        when dual_stus_cd_01 in ('01','03','05','06') and mths.month_num = 1 then true 
+        when dual_stus_cd_02 in ('01','03','05','06') and mths.month_num = 2 then true 
+        when dual_stus_cd_03 in ('01','03','05','06') and mths.month_num = 3 then true 
+        when dual_stus_cd_04 in ('01','03','05','06') and mths.month_num = 4 then true 
+        when dual_stus_cd_05 in ('01','03','05','06') and mths.month_num = 5 then true 
+        when dual_stus_cd_06 in ('01','03','05','06') and mths.month_num = 6 then true 
+        when dual_stus_cd_07 in ('01','03','05','06') and mths.month_num = 7 then true 
+        when dual_stus_cd_08 in ('01','03','05','06') and mths.month_num = 8 then true 
+        when dual_stus_cd_09 in ('01','03','05','06') and mths.month_num = 9 then true 
+        when dual_stus_cd_10 in ('01','03','05','06') and mths.month_num = 10 then true 
+        when dual_stus_cd_11 in ('01','03','05','06') and mths.month_num = 11 then true 
+        when dual_stus_cd_12 in ('01','03','05','06') and mths.month_num = 12 then true 
+        else false 
+        end                                                             as has_partial_dual_status
+    , case 
+        when dual_stus_cd_01 = '01' and mths.month_num = 1 then true 
+        when dual_stus_cd_02 = '01' and mths.month_num = 2 then true 
+        when dual_stus_cd_03 = '01' and mths.month_num = 3 then true 
+        when dual_stus_cd_04 = '01' and mths.month_num = 4 then true 
+        when dual_stus_cd_05 = '01' and mths.month_num = 5 then true 
+        when dual_stus_cd_06 = '01' and mths.month_num = 6 then true 
+        when dual_stus_cd_07 = '01' and mths.month_num = 7 then true 
+        when dual_stus_cd_08 = '01' and mths.month_num = 8 then true 
+        when dual_stus_cd_09 = '01' and mths.month_num = 9 then true 
+        when dual_stus_cd_10 = '01' and mths.month_num = 10 then true 
+        when dual_stus_cd_11 = '01' and mths.month_num = 11 then true 
+        when dual_stus_cd_12 = '01' and mths.month_num = 12 then true 
+        else false 
+        end                                                             as is_qmb_only
+    , case 
+        when cst_shr_grp_cd_01 in (1,2,3) and mths.month_num = 1 then 100 
+        when cst_shr_grp_cd_02 in (1,2,3) and mths.month_num = 2 then 100 
+        when cst_shr_grp_cd_03 in (1,2,3) and mths.month_num = 3 then 100 
+        when cst_shr_grp_cd_04 in (1,2,3) and mths.month_num = 4 then 100 
+        when cst_shr_grp_cd_05 in (1,2,3) and mths.month_num = 5 then 100 
+        when cst_shr_grp_cd_06 in (1,2,3) and mths.month_num = 6 then 100 
+        when cst_shr_grp_cd_07 in (1,2,3) and mths.month_num = 7 then 100 
+        when cst_shr_grp_cd_08 in (1,2,3) and mths.month_num = 8 then 100 
+        when cst_shr_grp_cd_09 in (1,2,3) and mths.month_num = 9 then 100 
+        when cst_shr_grp_cd_10 in (1,2,3) and mths.month_num = 10 then 100 
+        when cst_shr_grp_cd_11 in (1,2,3) and mths.month_num = 11 then 100 
+        when cst_shr_grp_cd_12 in (1,2,3) and mths.month_num = 12 then 100 
+        else 0 
+        end                                                             as cost_share_premium_subsidy_percent
+    , case 
+        when mths.month_num = 1
+            then 
+                case 
+                    when cst_shr_grp_cd_01 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_01 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_01 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 2
+            then 
+                case 
+                    when cst_shr_grp_cd_02 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_02 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_02 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 3
+            then 
+                case 
+                    when cst_shr_grp_cd_03 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_03 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_03 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 4
+            then 
+                case 
+                    when cst_shr_grp_cd_04 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_04 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_04 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 5
+            then 
+                case 
+                    when cst_shr_grp_cd_05 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_05 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_05 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 6
+            then 
+                case 
+                    when cst_shr_grp_cd_06 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_06 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_06 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 7
+            then 
+                case 
+                    when cst_shr_grp_cd_07 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_07 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_07 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 8
+            then 
+                case 
+                    when cst_shr_grp_cd_08 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_08 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_08 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 9
+            then 
+                case 
+                    when cst_shr_grp_cd_09 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_09 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_09 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 10
+            then 
+                case 
+                    when cst_shr_grp_cd_10 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_10 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_10 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 11
+            then 
+                case 
+                    when cst_shr_grp_cd_11 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_11 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_11 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        when mths.month_num = 12
+            then 
+                case 
+                    when cst_shr_grp_cd_12 = 1
+                        then 'no copay' 
+                    when cst_shr_grp_cd_12 = 2
+                        then 'low copay'
+                    when cst_shr_grp_cd_12 = 3
+                        then 'high copay'
+                    else 'Not Applicable'
+                    end
+        else 'Invalid Row'
+        end                                                         as cost_share_copay_cat
+from ${ref("bene_17")} bene
+cross join ${ref("seed_months_numeric")} mths 

@@ -1,0 +1,55 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Interim assembly of dim_locations, with one line per zip code.",
+  assertions: {
+    nonNull: ["zip_cd"],
+    uniqueKey: ["zip_cd"]
+  }
+}
+
+with distinct_zip as (
+--finds distinct zip codes from beneficiaries and coordinating state codes. 
+--Note: one zip straddles two states, so preferred state code (in this case, the min) was chosen
+--this will set up zip as the primary key
+select 
+      format('%05d',zip_cd)     as pad_zip
+    , min(state_code)           as state_code
+from ${ref("int_beneficiary_locations")}
+where zip_cd != 0
+group by 1
+), 
+grouped_zip as (
+--takes distinct zip/cities from ZIP to FIPS map (sourced from HUD), returns only one county for illustrative purposes.
+--Note: ZIP does not map cleanly to FIPS/counties, so minimum chosen to provide one row per zip.
+  select 
+        zip 
+      , usps_zip_pref_city
+      , min(county)   as county
+  from ${ref("zip_to_fips")}
+  group by 1,2
+),
+grouped_fips_names as (
+--selects one FIPS per row and returns county name
+--lookup table, also used in bene_locations, has multiple rows per FIP. This returns only needed columns and deduplicaets
+  select 
+      fipscounty
+    , countyname_fips
+  from ${ref("ssa_to_fips_crosswalk")}
+  group by 1,2
+)
+
+select 
+      z.pad_zip                         as zip_cd
+    , z.state_code
+    , st.state_name
+    , ztf.county 
+    , initcap(ztf.usps_zip_pref_city)   as city
+    , initcap(stf.countyname_fips)      as county_name
+from distinct_zip z
+left join ${ref("state_code_lookup")} st 
+    on z.state_code = st.state_code
+left join grouped_zip ztf 
+    on z.pad_zip = ztf.zip
+left join grouped_fips_names stf 
+    on ztf.county = stf.fipscounty

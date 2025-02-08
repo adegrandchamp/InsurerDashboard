@@ -1,0 +1,110 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Intermediary cleansing of beneficiary 2016 source data for annual benefits",
+  assertions: {
+    nonNull: ["benefit_yr_key"],
+    uniqueKey: ["benefit_yr_key"]
+  }
+}
+
+select 
+      sha256(concat(bene.bene_id,cast(2016 as string)))      as benefit_yr_key
+    , bene.bene_id 
+    , 2016                                                   as benefit_year
+    , case 
+        when bene.entlmt_rsn_orig = 0
+            then 'Old Age/Survivor'
+        when bene.entlmt_rsn_orig = 1
+            then 'Disability'
+        when bene.entlmt_rsn_orig = 2
+            then 'End-Stage Renal Disease'
+        when bene.entlmt_rsn_orig = 3
+            then 'Disability and Renal Disease'
+        else 'No Entitlement Reason Given'
+        end                                                  as entlmt_rsn_orig_cat
+    , case 
+        when bene.entlmt_rsn_orig = 0 
+            then True 
+        else False 
+        end                                                  as qualified_oasi_orig
+    , case 
+        when bene.entlmt_rsn_orig = 1 
+            then True 
+        when bene.entlmt_rsn_orig = 3
+            then True 
+        else False 
+        end                                                  as qualified_dib_orig
+    , case 
+        when bene.entlmt_rsn_orig = 2
+            then True 
+        when bene.entlmt_rsn_orig = 3
+            then True 
+        else False 
+        end                                                  as qualified_esrd_orig
+        , case 
+        when bene.entlmt_rsn_curr = 0
+            then 'Old Age/Survivor'
+        when bene.entlmt_rsn_curr = 1
+            then 'Disability'
+        when bene.entlmt_rsn_curr = 2
+            then 'End-Stage Renal Disease'
+        when bene.entlmt_rsn_curr = 3
+            then 'Disability and Renal Disease'
+        when bene.entlmt_rsn_curr = 4 
+            then 'Part B Immunosuppressive Drug'
+        else 'No Entitlement Reason Given'
+        end                                                  as entlmt_rsn_curr_cat
+    , case 
+        when bene.entlmt_rsn_curr = 0 
+            then True 
+        else False 
+        end                                                  as qualified_oasi_curr
+    , case 
+        when bene.entlmt_rsn_curr = 1 
+            then True 
+        when bene.entlmt_rsn_curr = 3
+            then True 
+        else False 
+        end                                                  as qualified_dib_curr
+    , case 
+        when bene.entlmt_rsn_curr = 2
+            then True 
+        when bene.entlmt_rsn_curr = 3
+            then True 
+        else False 
+        end                                                  as qualified_esrd_curr
+    , case 
+        when bene.entlmt_rsn_curr = 4
+            then True 
+        else False 
+        end                                                  as qualified_pbid_curr
+    , case 
+        when bene.esrd_ind = 'Y'
+        then True 
+        else False
+        end                                                  as esrd_bool 
+    , bene.bene_hi_cvrage_tot_mons
+    , bene.bene_smi_cvrage_tot_mons
+    , bene.ptd_plan_cvrg_mons
+    , coalesce(bene.ptc_cntrct_id_01, bene.ptc_cntrct_id_02, bene.ptc_cntrct_id_03, bene.ptc_cntrct_id_04, 
+               bene.ptc_cntrct_id_05, bene.ptc_cntrct_id_06, bene.ptc_cntrct_id_07, bene.ptc_cntrct_id_08,
+               bene.ptc_cntrct_id_09, bene.ptc_cntrct_id_10, bene.ptc_cntrct_id_11, bene.ptc_cntrct_id_12)
+                                                            as ptc_coalesced_plan_id
+    , case 
+        when bene.ptd_plan_cvrg_mons > 0
+        then True 
+        else False 
+        end                                                 as enrolled_part_d
+    , bic.cat                                               as crnt_bic_cat
+    , bene.bene_state_buyin_tot_mons
+    , bene.bene_hmo_cvrage_tot_mons
+    , bene.rds_cvrg_mons
+    , case 
+        when bene.rds_cvrg_mons > 0
+            then True 
+        else False 
+        end                                                 as has_rds_cvrg
+from ${ref("bene_16")} bene 
+left join ${ref("bic_lookup")} bic 
+    on bene.crnt_bic_cd = bic.num_code

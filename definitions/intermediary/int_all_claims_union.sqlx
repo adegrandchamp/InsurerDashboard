@@ -1,0 +1,23 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Union of all claim files",
+  assertions: {
+    nonNull: ["clm_id"],
+    uniqueKey: ["clm_id"]
+  }
+}
+
+select * from ${ref("int_clm_carrier")}
+union all 
+select * from ${ref("int_clm_dme")} 
+union all 
+select * from ${ref("int_clm_hha")} 
+union all 
+select * from ${ref("int_clm_hospice")}
+union all 
+select * from ${ref("int_clm_inpatient")}
+union all 
+select * from ${ref("int_clm_outpatient")}
+union all 
+select * from ${ref("int_clm_snf")}  

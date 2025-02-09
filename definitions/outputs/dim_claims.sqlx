@@ -11,6 +11,7 @@ config {
 select
       ac.clm_id 
     , ac.bene_id 
+    , sha256(concat(ac.bene_id,cast(ac.claim_start_year as string)))  as benefit_yr_key
     , ac.claim_file
     , ac.nch_clm_type_cat
     , ac.claim_processing_type
@@ -23,6 +24,10 @@ select
     , ac.clm_from_dt
     , ac.clm_thru_dt
     , ac.claim_start_year
+    , extract(month from ac.clm_from_dt)                              as claim_start_month --forgot to add earlier
+    , sha256(concat(ac.bene_id
+                    ,cast(ac.claim_start_year as string)
+                    , cast(extract(month from ac.clm_from_dt) as string))) as benefit_mth_key
     , ac.claim_end_year
     , ac.claim_duration_in_days
     , ac.clm_pmt_amt

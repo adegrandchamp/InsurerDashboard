@@ -1,0 +1,18 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Calculating percentile rank of clm_pmt_amt, to be joined back in at the dimension level",
+  assertions: {
+    nonNull: ["clm_id"],
+    uniqueKey: ["clm_id"]
+  }
+}
+
+select 
+    clm_id 
+    , claim_file
+    , clm_pmt_amt 
+    , round(percent_rank() over (partition by claim_file order by clm_pmt_amt desc),4)   as clm_pmt_per_rank_file
+    , round(percent_rank() over (order by clm_pmt_amt desc),4)                           as clm_pmt_per_rank_tot
+from ${ref("int_all_claims_union")}
+

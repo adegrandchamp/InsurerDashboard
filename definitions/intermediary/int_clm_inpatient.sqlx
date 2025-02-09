@@ -49,7 +49,7 @@ select
     , False                                 as carr_clm_prvdr_asgnmt_bool
     , prncpal_dgns_cd
     --count diagnoses: calculate in interim step after walk, then join to dimension
-    , null                                  as clm_clncl_tril_num
+    , "N/A"                                 as clm_clncl_tril_num
     , False                                 as claim_part_of_clinical_trial
     , org_npi_num
     , 'Hospital'                            as clm_fac_type_cat
@@ -86,11 +86,11 @@ select
         end                                 as claim_has_external_cause 
     , 0                                     as clm_hha_tot_visit_cnt
     , clm_admsn_dt 
-    , null                                  as rev_cntr_1st_ansi_cd 
-    , null                                  as rev_cntr_apc_hipps_cd 
+    , cast(null as integer)                 as rev_cntr_1st_ansi_cd 
+    , cast(null as integer)                 as rev_cntr_apc_hipps_cd 
     , clm_utlztn_day_cnt 
     , nch_bene_dschrg_dt   
-    , null                                  as clm_hospc_start_dt_id 
+    , cast(null as date)                    as clm_hospc_start_dt_id 
     , case 
         when clm_mco_pd_sw = 1
           then True 
@@ -143,9 +143,9 @@ select
     , bene_tot_coinsrnc_days_cnt 
     , clm_non_utlztn_days_cnt 
     , nch_blood_pnts_frnshd_qty
-    , nch_vrfd_ncvrd_stay_from_dt
-    , nch_vrfd_ncvrd_stay_thru_dt 
-    , nch_bene_mdcr_bnfts_exhtd_dt_i
+    , cast(nch_vrfd_ncvrd_stay_from_dt as date) as nch_vrfd_ncvrd_stay_from_dt
+    , cast(nch_vrfd_ncvrd_stay_thru_dt as date) as nch_vrfd_ncvrd_stay_thru_dt
+    , cast(nch_bene_mdcr_bnfts_exhtd_dt_i as date)  as nch_bene_mdcr_bnfts_extd_dt_i
     , case 
         when clm_drg_outlier_stay_cd = 1 
           then 'Day'
@@ -157,13 +157,13 @@ select
     , admtg_dgns_cd 
     , ime_op_clm_val_amt 
     , dsh_op_clm_val_amt 
-    , clm_uncompd_care_pmt_amt 
+    , 0                                     as clm_uncompd_care_pmt_amt 
     , 0                                     as nch_bene_ptb_coinsrnc_amt 
     , 0                                     as nch_bene_partb_ddctbl_amt 
     , 0                                     as clm_op_bene_pmt_amt 
     , 0                                     as clm_op_prvdr_pmt_amt
-    , null                                  as nch_qlfyd_stay_from_dt 
-    , null                                  as nch_qlfyd_stay_thru_dt 
+    , cast(null as date)                    as nch_qlfyd_stay_from_dt 
+    , cast(null as date)                    as nch_qlfyd_stay_thru_dt 
     , 0                                     as nch_carr_clm_sbmtd_chrg_amt 
     , 0                                     as nch_clm_bene_pmt_amt 
     , 0                                     as nch_clm_prvdr_pmt_amt

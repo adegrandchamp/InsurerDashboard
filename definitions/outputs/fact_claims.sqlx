@@ -1,0 +1,154 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Augmented fact table based on claims, with beneficiaries, locations, monthly and annual benefits, and organizational NPIs",
+  assertions: {
+    nonNull: ["clm_id"],
+    uniqueKey: ["clm_id"]
+  }
+}
+
+select 
+--claims fields 
+      clm.clm_id
+    , clm.claim_file
+    , clm.nch_clm_type_cat
+    , clm.claim_processing_type
+    , clm.is_inpatient_claim
+    , clm.is_outpatient_claim
+    , clm.is_durable_medical_equipment_claim
+    , clm.is_hospice_claim
+    , clm.is_home_health_agency_claim
+    , clm.is_skilled_nursing_facility_claim
+    , clm.clm_from_dt
+    , clm.clm_thru_dt
+    , clm.claim_start_year
+    , clm.claim_start_month
+    , clm.claim_end_year
+    , clm.carr_clm_prvdr_asgnmt_bool
+    , clm.clm_fac_type_cat
+    , clm.claim_is_in_hospital
+    , clm.clm_srvc_clsfctn_type_cat
+    , clm.clm_freq_cat
+    , clm.claim_has_external_cause
+    , clm.clm_admsn_dt
+    , clm.nch_bene_dschrg_dt
+    , clm.clm_hospc_start_dt_id
+    , clm.admission_is_emergency
+    , clm.admission_is_urgent
+    , clm.admission_is_elective
+    , clm.clm_src_ip_admsn_cat
+    , clm.clm_drg_outlier_stay_cat
+--diagnosis fields 
+    , prd.long_desc                   as principal_diagnosis_on_claim
+    , fste.long_desc                  as first_external_diagnosis_on_claim
+    , adm.long_desc                   as admitting_diagnosis_on_claim
+--organization fields 
+    , org.organization_state 
+    , org.organization_zip
+    , org.specialty_group
+    , org.specialty_classification
+    , org.specialization
+--beneficiary and location fields
+    , bl.zip_cd
+    , bl.beneficiary_city
+    , bl.beneficiary_county
+    , bl.beneficiary_state
+    , bl.bene_birth_dt
+    , bl.beneficiary_is_deceased
+    , bl.sex_ident_cat
+    , bl.beneficiary_is_male
+    , bl.beneficiary_is_female
+    , bl.bene_race_cat
+    , bl.rti_race_cat
+    , bl.beneficiary_is_white
+    , bl.beneficiary_is_not_white
+    , bl.beneficiary_is_black
+    , bl.beneficiary_is_asian_or_pi
+    , bl.beneficiary_is_hispanic
+    , bl.beneficiary_is_indigenous
+    , bl.beneficiary_is_other_race
+    , bl.covstart
+--yearly benefits fields
+    , byr.entlmt_rsn_orig_cat
+    , byr.qualified_oasi_orig
+    , byr.qualified_dib_orig
+    , byr.qualified_esrd_orig
+    , byr.entlmt_rsn_curr_cat
+    , byr.qualified_oasi_curr
+    , byr.qualified_dib_curr
+    , byr.qualified_esrd_curr
+    , byr.esrd_bool
+    , byr.enrolled_part_c
+    , byr.crnt_bic_cat
+    , byr.is_primary_claimant
+    , byr.has_rds_cvrg
+--benefits monthly fields 
+    , bm.has_ptc_for_month
+    , bm.has_ptd_for_month
+    , bm.has_employer_subsidy_for_month
+    , bm.month_dual_status_code_clean
+    , bm.has_full_dual_status
+    , bm.has_partial_dual_status
+    , bm.is_qmb_only
+    , bm.cost_share_premium_subsidy_percent
+    , bm.cost_share_copay_cat
+--claims measures
+    , clm.claim_duration_in_days
+    , clm.clm_pmt_amt
+    , clm.clm_pmt_per_rank_tot
+    , clm.clm_pmt_per_rank_file
+    , clm.clm_tot_chrg_amt
+    , clm.clm_hha_tot_visit_cnt
+    , clm.clm_utlztn_day_cnt
+    , clm.clm_pass_thru_per_diem_amt
+    , clm.nch_bene_ip_ddctbl_amt
+    , clm.nch_bene_pta_coinsrnc_lblty_am
+    , clm.nch_bene_blood_ddctbl_lblty_am
+    , clm.nch_profnl_cmpnt_chrg_amt
+    , clm.clm_tot_pps_cptl_amt
+    , clm.clm_pps_cptl_dsprptnt_shr_amt
+    , clm.clm_pps_cptl_excptn_amt
+    , clm.clm_pps_cptl_fsp_amt
+    , clm.clm_pps_cptl_ime_amt
+    , clm.clm_pps_cptl_outlier_amt
+    , clm.clm_pps_old_cplt_hld_hrmls_amt
+    , clm.clm_pps_cptl_drg_wt_num
+    , clm.bene_tot_coinsrnc_days_cnt
+    , clm.clm_non_utlztn_days_cnt
+    , clm.nch_blood_pnts_frnshd_qty
+    , clm.nch_drg_outlier_aprvd_pmt_amt
+    , clm.nch_bene_ptb_coinsrnc_amt
+    , clm.nch_bene_partb_ddctbl_amt
+    , clm.clm_op_prvdr_pmt_amt
+    , clm.nch_carr_clm_sbmtd_chrg_amt
+    , clm.nch_clm_prvdr_pmt_amt
+    , clm.nch_ip_ncvrd_chrg_amt
+    , clm.carr_clm_cash_ddctbl_apld_amt
+    , clm.nch_carr_clm_alowd_amt
+    , clm.nch_prmry_pyr_clm_pd_amt
+--beneficiary and location measures
+    , round(date_diff(clm.clm_from_dt,bl.bene_birth_dt,day)/365,1)   as beneficiary_age_at_claim
+    , date_diff(clm.clm_from_dt, bl.covstart,year)                   as length_of_coverage_at_claim_in_years 
+--benefits yearly measures
+    , byr.bene_hi_cvrage_tot_mons
+    , byr.bene_smi_cvrage_tot_mons
+    , byr.ptd_plan_cvrg_mons
+    , byr.bene_state_buyin_tot_mons
+    , byr.bene_hmo_cvrage_tot_mons
+    , byr.rds_cvrg_mons
+from ${ref("dim_claims")} clm 
+inner join ${ref("dim_beneficiaries_with_locations")} bl 
+  on clm.benefit_yr_key = bl.bene_location_key
+inner join ${ref("dim_benefits_yearly")} byr 
+  on clm.benefit_yr_key = byr.benefit_yr_key
+inner join ${ref("dim_benefits_monthly")} bm 
+  on clm.benefit_mth_key = bm.benefit_mth_key
+left join ${ref("dim_diagnoses")} prd 
+  on clm.prncpal_dgns_cd = prd.code 
+left join ${ref("dim_diagnoses")} fste 
+  on clm.fst_dgns_e_cd = fste.code 
+left join ${ref("dim_diagnoses")} adm 
+  on clm.admtg_dgns_cd = adm.code 
+left join ${ref("dim_organizations")} org 
+  on clm.org_npi_num = org.npi

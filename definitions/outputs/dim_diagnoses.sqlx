@@ -9,6 +9,6 @@ config {
 }
 
 select 
-    code
+      code
     , long_desc
 from ${ref("icd_diagnoses")}

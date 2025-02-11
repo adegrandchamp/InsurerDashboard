@@ -1,0 +1,4 @@
+--plan
+--1: bring in ICD fields, E fields, POA fields, reason fields from all claim data sheets
+--2: cross join with diag_code_type in this script, adding flags as needed
+--3: move this sheet to outputs and rename to claim_diagnosis_walk

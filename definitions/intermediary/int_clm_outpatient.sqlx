@@ -135,5 +135,43 @@ select
     , 0                                     as carr_clm_cash_ddctbl_apld_amt 
     , 0                                     as nch_carr_clm_alowd_amt 
     , nch_prmry_pyr_clm_pd_amt
+          --diagnoses fields, used only in walk (not main claims fact)
+    , icd_dgns_cd1
+    , icd_dgns_cd2
+    , icd_dgns_cd3
+    , icd_dgns_cd4
+    , icd_dgns_cd5
+    , icd_dgns_cd6
+    , icd_dgns_cd7
+    , icd_dgns_cd8
+    , icd_dgns_cd9
+    , icd_dgns_cd10
+    , icd_dgns_cd11
+    , icd_dgns_cd12
+    , icd_dgns_cd13
+    , icd_dgns_cd14
+    , icd_dgns_cd15
+    , icd_dgns_cd16
+    , icd_dgns_cd17
+    , icd_dgns_cd18
+    , icd_dgns_cd19
+    , icd_dgns_cd20
+    , icd_dgns_cd21
+    , icd_dgns_cd22
+    , icd_dgns_cd23
+    , icd_dgns_cd24
+    , icd_dgns_cd25
+    , icd_dgns_e_cd1
+    , icd_dgns_e_cd2
+    , icd_dgns_e_cd3
+    , icd_dgns_e_cd4
+    , icd_dgns_e_cd5
+    , icd_dgns_e_cd6
+    , icd_dgns_e_cd7
+    , icd_dgns_e_cd8
+    , icd_dgns_e_cd9
+    , icd_dgns_e_cd10
+    , icd_dgns_e_cd11
+    , icd_dgns_e_cd12
 from ${ref("clm_outpatient")} 
 group by all 

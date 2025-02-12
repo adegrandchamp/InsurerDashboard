@@ -1,4 +1,77 @@
 --plan
---1: bring in ICD fields, E fields, POA fields, reason fields from all claim data sheets
---2: cross join with diag_code_type in this script, adding flags as needed
---3: move this sheet to outputs and rename to claim_diagnosis_walk
+--1: bring in ICD fields, E fields, reason fields from all claim data sheets
+--2: cross join with diag_code_type in this script
+--3: join in icd_diagnoses in dim, bringing in diagnosis names
+
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Claim-beneficiary-diagnosis walk with codes only",
+  assertions: {
+    nonNull: ["claim_diagnosis_key"],
+    uniqueKey: ["claim_diagnosis_key"]
+  }
+}
+
+select
+      sha256(concat(claims.clm_id,nums.code_num,nums.code_type))          as claim_diagnosis_key
+    , claims.clm_id 
+    , claims.bene_id 
+    , nums.code_num                  as diagnosis_number 
+    , nums.code_type                 as diagnosis_code_type
+    , claims.clm_from_dt
+    , claims.clm_thru_dt
+    , case 
+        when nums.code_num = 1 and nums.code_type = 'default' then claims.icd_dgns_cd1
+        when nums.code_num = 2 and nums.code_type = 'default' then claims.icd_dgns_cd2
+        when nums.code_num = 3 and nums.code_type = 'default' then claims.icd_dgns_cd3
+        when nums.code_num = 4 and nums.code_type = 'default' then claims.icd_dgns_cd4
+        when nums.code_num = 5 and nums.code_type = 'default' then claims.icd_dgns_cd5
+        when nums.code_num = 6 and nums.code_type = 'default' then claims.icd_dgns_cd6
+        when nums.code_num = 7 and nums.code_type = 'default' then claims.icd_dgns_cd7
+        when nums.code_num = 8 and nums.code_type = 'default' then claims.icd_dgns_cd8
+        when nums.code_num = 9 and nums.code_type = 'default' then claims.icd_dgns_cd9
+        when nums.code_num = 10 and nums.code_type = 'default' then claims.icd_dgns_cd10
+        when nums.code_num = 11 and nums.code_type = 'default' then claims.icd_dgns_cd11
+        when nums.code_num = 12 and nums.code_type = 'default' then claims.icd_dgns_cd12
+        when nums.code_num = 13 and nums.code_type = 'default' then claims.icd_dgns_cd13
+        when nums.code_num = 14 and nums.code_type = 'default' then claims.icd_dgns_cd14
+        when nums.code_num = 15 and nums.code_type = 'default' then claims.icd_dgns_cd15
+        when nums.code_num = 16 and nums.code_type = 'default' then claims.icd_dgns_cd16
+        when nums.code_num = 17 and nums.code_type = 'default' then claims.icd_dgns_cd17
+        when nums.code_num = 18 and nums.code_type = 'default' then claims.icd_dgns_cd18
+        when nums.code_num = 19 and nums.code_type = 'default' then claims.icd_dgns_cd19
+        when nums.code_num = 20 and nums.code_type = 'default' then claims.icd_dgns_cd20
+        when nums.code_num = 21 and nums.code_type = 'default' then claims.icd_dgns_cd21
+        when nums.code_num = 22 and nums.code_type = 'default' then claims.icd_dgns_cd22
+        when nums.code_num = 23 and nums.code_type = 'default' then claims.icd_dgns_cd23
+        when nums.code_num = 24 and nums.code_type = 'default' then claims.icd_dgns_cd24
+        when nums.code_num = 25 and nums.code_type = 'default' then claims.icd_dgns_cd25
+        when nums.code_num = 1 and nums.code_type = 'external' then claims.icd_dgns_e_cd1
+        when nums.code_num = 2 and nums.code_type = 'external' then claims.icd_dgns_e_cd2
+        when nums.code_num = 3 and nums.code_type = 'external' then claims.icd_dgns_e_cd3
+        when nums.code_num = 4 and nums.code_type = 'external' then claims.icd_dgns_e_cd4
+        when nums.code_num = 5 and nums.code_type = 'external' then claims.icd_dgns_e_cd5
+        when nums.code_num = 6 and nums.code_type = 'external' then claims.icd_dgns_e_cd6
+        when nums.code_num = 7 and nums.code_type = 'external' then claims.icd_dgns_e_cd7
+        when nums.code_num = 8 and nums.code_type = 'external' then claims.icd_dgns_e_cd8
+        when nums.code_num = 9 and nums.code_type = 'external' then claims.icd_dgns_e_cd9
+        when nums.code_num = 10 and nums.code_type = 'external' then claims.icd_dgns_e_cd10
+        when nums.code_num = 11 and nums.code_type = 'external' then claims.icd_dgns_e_cd11
+        when nums.code_num = 12 and nums.code_type = 'external' then claims.icd_dgns_e_cd12
+        when nums.code_num = 99 then
+            case  
+                when nums.code_type = 'principal'
+                    then claims.prncpal_dgns_cd
+                when nums.code_type = 'admitting'
+                    then claims.admtg_dgns_cd
+                when nums.code_type = 'first_external'
+                    then claims.fst_dgns_e_cd
+                else null 
+            end
+        else null 
+        end                                                                 as diagnosis_code
+    , case when nums.code_type = 'external' then True else False end        as external_flag
+from ${ref("int_all_claims_union")} claims 
+cross join ${ref("diag_code_type")} nums 
+order by clm_id, diagnosis_number, diagnosis_code_type

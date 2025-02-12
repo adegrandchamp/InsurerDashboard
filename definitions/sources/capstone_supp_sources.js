@@ -9,7 +9,8 @@
     "bic_lookup",
     "npi_taxonomy",
     "npi_full_list",
-    "clm_carr_names"
+    "clm_carr_names",
+    "diag_code_type",
 ].forEach((name) =>
     declare({
         databse: "spatial-earth-449020-m3",

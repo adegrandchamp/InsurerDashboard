@@ -1,0 +1,26 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Claim-beneficiary-diagnosis walk with codes and diagnosis variables, filtered to exclude null rows",
+  assertions: {
+    nonNull: ["claim_diagnosis_key"],
+    uniqueKey: ["claim_diagnosis_key"]
+  }
+}
+
+select 
+      w.claim_diagnosis_key
+    , w.clm_id 
+    , w.bene_id 
+    , w.clm_from_dt
+    , w.clm_thru_dt
+    , w.diagnosis_number
+    , w.diagnosis_code_type
+    , w.diagnosis_code
+    , d.long_desc               as diagnosis_name
+    , w.external_flag
+from ${ref("int_claims_diagnoses")} w 
+left join ${ref("dim_diagnoses")} d 
+    on w.diagnosis_code = d.code 
+where w.diagnosis_code is not null and d.long_desc is not null
+order by clm_id, diagnosis_number, diagnosis_code_type

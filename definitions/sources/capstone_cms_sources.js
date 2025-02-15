@@ -20,7 +20,7 @@
     "pharm_pde"
 ].forEach((name) =>
     declare({
-        databse: "spatial-earth-449020-m3",
+        database: "spatial-earth-449020-m3",
         schema: "cms_beneficiary",
         name,
     })

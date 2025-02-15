@@ -1,0 +1,30 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Interim assembly of ADI 2020 file - with measure aggregation to zip_five level.",
+  assertions: {
+    nonNull: ["census_key"],
+    uniqueKey: ["census_key"]
+  }
+}
+
+with data_conv as (
+select 
+      left(zip_nine,5)                              as zip_five 
+    , cast(2020 as integer)                         as file_year
+    , cast(adi_natrank as bignumeric)               as natrank_flt  
+    , cast(adi_staterank as bignumeric)             as strank_flt
+from ${ref("adi_2020")}
+where 
+    adi_natrank not in ('adi_natrank','NONE','QDI','PH','GQ-PH','GQ','P','U') --these should be suppressed according to codebook
+    and adi_staterank != 'adi_natrank'
+)
+
+select 
+      sha256(concat(zip_five,cast(2020 as string))) as census_key 
+    , zip_five
+    , file_year 
+    , approx_quantiles(natrank_flt,100)[offset(50)] as med_natrank_approx 
+    , approx_quantiles(strank_flt,100)[offset(50)]  as med_strank_approx
+from data_conv
+group by 1,2,3

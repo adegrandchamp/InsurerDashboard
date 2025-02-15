@@ -11,9 +11,13 @@
     "npi_full_list",
     "clm_carr_names",
     "diag_code_type",
+    "census_data_15_23",
+    "adi_2015",
+    "adi_2020",
+    "adi_2022"
 ].forEach((name) =>
     declare({
-        databse: "spatial-earth-449020-m3",
+        database: "spatial-earth-449020-m3",
         schema: "cms_supplemental",
         name,
     })

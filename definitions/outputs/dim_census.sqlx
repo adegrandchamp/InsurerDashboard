@@ -12,8 +12,8 @@ select
       c.census_key
     , c.census_year
     , c.zip_five
-    , a.med_natrank_approx 
-    , a.med_strank_approx
+    , coalesce(a.med_natrank_approx,0)        as med_natrank_approx 
+    , coalesce(a.med_strank_approx,0)         as med_strank_approx
     , c.class_of_worker_civilian_pct
     , c.class_of_worker_government_pct
     , c.class_of_worker_private_wage_pct
@@ -65,6 +65,5 @@ select
     --, state. --already have in dim_locations
 from ${ref("int_census_data")} c
 left join ${ref("int_all_adi")} a
-  on cast(c.census_year as string) = a.file_year 
-  and cast(c.zip_five as string) = a.zip_five
-where c.census_year = 2015
+  on c.census_year = a.file_year 
+  and c.zip_five = a.zip_five

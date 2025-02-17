@@ -9,8 +9,17 @@ config {
 }
 
 select 
+--id fields
+      clm.clm_id 
+    , bl.bene_location_key
+    , byr.benefit_yr_key
+    , bm.benefit_mth_key
+    , bl.bene_id 
+    , prd.code              as primary_diagnosis_code 
+    , fste.code             as first_external_diagnosis_code
+    , adm.code              as admitting_diagnosis_code
+    , org.npi               as organization_npi
 --claims fields 
-      clm.clm_id
     , clm.claim_file
     , clm.nch_clm_type_cat
     , clm.claim_processing_type

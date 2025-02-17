@@ -11,7 +11,7 @@ config {
 select 
       sha256(concat(cast(year as string),cast(zip_code as string)))         as census_key
     , year                                                                  as census_year
-    , zip_code                                                              as zip_five
+    , lpad(cast(zip_code as string),5,'0')                                  as zip_five
     , coalesce(class_of_worker_civilian_pct,0)                              as class_of_worker_civilian_pct
     , coalesce(class_of_worker_government_pct,0.0)                          as class_of_worker_government_pct
     , coalesce(class_of_worker_private_wage_pct,0.0)                        as class_of_worker_private_wage_pct

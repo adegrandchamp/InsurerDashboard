@@ -1,0 +1,54 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Interim assembly of dim_beneficiaries, with one line per beneficiary and data from the last year the beneficiary appeared in the raw files",
+  assertions: {
+    nonNull: ["bene_id"],
+    uniqueKey: ["bene_id"]
+  }
+}
+
+with all_benes as (
+    select * from ${ref("int_beneficiary_15")}
+    union all 
+    select * from ${ref("int_beneficiary_16")}
+    union all 
+    select * from ${ref("int_beneficiary_17")}
+    union all 
+    select * from ${ref("int_beneficiary_18")}
+    union all 
+    select * from ${ref("int_beneficiary_19")}
+    union all 
+    select * from ${ref("int_beneficiary_20")}
+    union all 
+    select * from ${ref("int_beneficiary_21")}
+    union all 
+    select * from ${ref("int_beneficiary_22")}
+    union all 
+    select * from ${ref("int_beneficiary_23")}
+    union all 
+    select * from ${ref("int_beneficiary_24")}
+    union all 
+    select * from ${ref("int_beneficiary_25")}
+)
+
+select 
+    bene_id
+    , max_by(bene_birth_dt,file_year)               as bene_birth_dt
+    , max_by(bene_death_dt, file_year)              as bene_death_dt
+    , max_by(beneficiary_is_deceased, file_year)    as beneficiary_is_deceased
+    , max_by(sex_ident_cat,file_year)               as sex_ident_cat
+    , max_by(beneficiary_is_male,file_year)         as beneficiary_is_male
+    , max_by(beneficiary_is_female,file_year)       as beneficiary_is_female
+    , max_by(bene_race_cat,file_year)               as bene_race_cat
+    , max_by(rti_race_cat,file_year)                as rti_race_cat
+    , max_by(beneficiary_is_white,file_year)        as beneficiary_is_white
+    , max_by(beneficiary_is_not_white,file_year)    as beneficiary_is_not_white
+    , max_by(beneficiary_is_black,file_year)        as beneficiary_is_black
+    , max_by(beneficiary_is_asian,file_year)        as beneficiary_is_asian_or_pi
+    , max_by(beneficiary_is_hispanic,file_year)     as beneficiary_is_hispanic
+    , max_by(beneficiary_is_indigenous,file_year)   as beneficiary_is_indigenous
+    , max_by(beneficiary_is_other_race,file_year)   as beneficiary_is_other_race
+    , max_by(covstart,file_year)                    as covstart
+from all_benes
+group by bene_id

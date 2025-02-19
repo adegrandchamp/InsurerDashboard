@@ -1,0 +1,40 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Organizational NPI attributes dimension, including specialty and location info.",
+    assertions: {
+    nonNull: ["npi"],
+    uniqueKey: ["npi"]
+  }
+  }
+
+
+select 
+    att.npi
+  , initcap(att.organization_name)                                  as organization_name
+  , case 
+      when att.provider_other_organization_name_type = '3' 
+        then initcap(att.provider_other_organization_name) 
+      else 'No DBA' 
+      end                                                           as dba_name
+  , case 
+      when att.business_address_second_line is not null 
+        then initcap(concat(att.business_address_first_line,', ',att.business_address_second_line))
+      when att.business_address_first_line is not null 
+        then initcap(att.business_address_first_line)
+      else 'No Street Address'
+      end                                                           as organization_street_address
+  , initcap(coalesce(att.business_address_city_name,'No City'))     as organization_city
+  , coalesce(att.business_address_state_name,'No State')            as organization_state
+  , coalesce(att.business_address_postal_code,'No ZIP')             as organization_zip
+  , att.taxonomy_code_1                                             as primary_specialty_code
+  , coalesce(tax.npi_grouping,'No Specialty Group')                 as specialty_group
+  , coalesce(tax.classification, 'No Specialty Class')              as specialty_classification
+  , coalesce(tax.specialization,'No Specialization')                as specialization                
+from ${ref("npi_full_list")} att
+left join ${ref("int_npi_taxonomy")} tax 
+  on att.taxonomy_code_1 = tax.code
+where 
+  entity_type_code = 2
+  and business_address_country_code = 'US'
+  and tax.section = 'Non-Individual'

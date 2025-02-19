@@ -1,5 +1,5 @@
 defaultProject: spatial-earth-449020-m3
 defaultLocation: US
-defaultDataset: cms_beneficiary
-defaultAssertionDataset: dataform_assertions
+defaultDataset: capstone_data_model
+defaultAssertionDataset: capstone_data_model_assertions
 dataformCoreVersion: 3.0.0

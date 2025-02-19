@@ -1,0 +1,69 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Combines cleansed census data and aggregated ADI data",
+  assertions: {
+    nonNull: ["census_key"],
+    uniqueKey: ["census_key"]
+  }
+}
+
+select 
+      c.census_key
+    , c.census_year
+    , c.zip_five
+    , coalesce(a.med_natrank_approx,0)        as med_natrank_approx 
+    , coalesce(a.med_strank_approx,0)         as med_strank_approx
+    , c.class_of_worker_civilian_pct
+    , c.class_of_worker_government_pct
+    , c.class_of_worker_private_wage_pct
+    , c.class_of_worker_self_employed_pct
+    , c.class_of_worker_unpaid_family_pct
+    , c.commute_carpooled_pct
+    , c.commute_drove_alone_pct
+    , c.commute_mean_travel_time_min
+    , c.commute_other_means_pct
+    , c.commute_public_transport_pct
+    , c.commute_walked_pct
+    , c.commute_worked_at_home_pct
+    , c.commute_workers_total_pct
+    , c.employment_children_6_17_parents_labor_force_pct
+    , c.employment_children_6_17_pct 
+    , c.employment_children_under_6_parents_labor_force_pct 
+    , c.employment_children_under_6_pct 
+    , c.employment_civilian_labor_force_pct 
+    , c.employment_females_16_over_civilian_labor_force_pct 
+    , c.employment_females_16_over_labor_force_pct 
+    , c.employment_females_16_over_pct 
+    , c.employment_population_16_over_armed_forces_pct
+    , c.employment_16_over_civilian_labor_force_pct 
+    , c.employment_population_16_over_employed_pct 
+    , c.employment_population_16_over_not_labor_force_pct 
+    , c.employment_population_16_over_pct 
+    , c.employment_population_16_over_unemployed_pct 
+    , c.employment_unemployment_rate_pct 
+    , c.health_insurance_civilian_18_64_employed_no_insurance_pct 
+    , c.health_insurance_civilian_18_64_employed_pct 
+    , c.health_insurance_civilian_18_64_employed_private_pct
+    , c.health_insurance_civilian_18_64_employed_public_pct
+    , c.health_insurance_civilian_18_64_employed_with_insurance_pct
+    , c.health_insurance_civilian_18_64_labor_force_pct
+    , c.health_insurance_civilian_18_64_not_labor_force_no_insurance_pct
+    , c.health_insurance_civilian_18_64_not_labor_force_pct 
+    , c.health_insurance_civilian_18_64_not_labor_force_private_pct
+    , c.health_insurance_civilian_18_64_not_labor_force_public_pct
+    , c.health_insurance_civilian_18_64_not_labor_force_with_insurance_pct
+    , c.health_insurance_civilian_18_64_pct 
+    , c.health_insurance_civilian_18_64_unemployed_no_insurance_pct
+    , c.health_insurance_civilian_18_64_unemployed_pct
+    , c.health_insurance_civilian_18_64_unemployed_private_pct
+    , c.health_insurance_civilian_18_64_unemployed_public_pct
+    , c.health_insurance_civilian_18_64_unemployed_with_insurance_pct
+    , c.health_insurance_civilian_population_pct
+    , c.health_insurance_civilian_under_18_no_insurance_pct
+    , c.health_insurance_civilian_under_18_pct
+    --, state. --already have in dim_locations
+from ${ref("int_census_data")} c
+left join ${ref("int_all_adi")} a
+  on c.census_year = a.file_year 
+  and c.zip_five = a.zip_five

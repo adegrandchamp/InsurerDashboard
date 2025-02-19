@@ -1,0 +1,14 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "ICD-10 Diagnosis Lookup",
+  assertions: {
+    nonNull: ["code"],
+    uniqueKey: ["code"]
+  }
+}
+
+select 
+      code
+    , long_desc
+from ${ref("icd_diagnoses")}

@@ -1,0 +1,19 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "All aggregated years of ADI measures",
+  assertions: {
+    nonNull: ["census_key"],
+    uniqueKey: ["census_key"]
+  }
+}
+
+select * from ${ref("int_adi_15")}
+
+union all 
+
+select * from ${ref("int_adi_20")}
+
+union all 
+
+select * from ${ref("int_adi_22")}

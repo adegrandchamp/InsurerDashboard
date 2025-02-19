@@ -1,0 +1,108 @@
+config {
+  type: "table",
+  schema: "capstone_data_model",
+  description: "Augmented fact table based on part d events, with beneficiaries, locations, monthly and annual benefits pulled in.",
+  assertions: {
+    nonNull: ["pde_id"],
+    uniqueKey: ["pde_id"]
+  }
+}
+
+select 
+--dim_pde fields
+      pde.pde_id
+    , pde.srvc_dt
+    , pde.srvc_yr
+    , pde.srvc_mth
+    , pde.pd_dt
+    , pde.pd_yr
+    , pde.pd_mth
+    , pde.plan_cntrct_rec_id
+    , pde.cmpnd_cd_bool
+    , pde.daw_prod_slctn_cat
+    , pde.generic_substitution_allowed
+    , pde.generic_substitution_taken
+    , pde.drug_dispensed_daw
+    , pde.drug_cvrg_status_cat
+    , pde.catastrophic_coverage_bool
+    , pde.rx_orgn_cat
+    , pde.brnd_gnrc_cat
+    , pde.drug_is_brand_name
+    , pde.drug_is_generic
+    , pde.phrmcy_type_cat
+    , pde.ptnt_rsndc_cat
+    , pde.patient_resides_at_home
+    , pde.fill_num_cat
+--beneficiary and location fields
+    , bl.zip_cd
+    , bl.beneficiary_city
+    , bl.beneficiary_county
+    , bl.beneficiary_state
+    , bl.bene_birth_dt
+    , bl.beneficiary_is_deceased
+    , bl.sex_ident_cat
+    , bl.beneficiary_is_male
+    , bl.beneficiary_is_female
+    , bl.bene_race_cat
+    , bl.rti_race_cat
+    , bl.beneficiary_is_white
+    , bl.beneficiary_is_not_white
+    , bl.beneficiary_is_black
+    , bl.beneficiary_is_asian_or_pi
+    , bl.beneficiary_is_hispanic
+    , bl.beneficiary_is_indigenous
+    , bl.beneficiary_is_other_race
+    , bl.covstart
+--yearly benefits fields
+    , byr.entlmt_rsn_orig_cat
+    , byr.qualified_oasi_orig
+    , byr.qualified_dib_orig
+    , byr.qualified_esrd_orig
+    , byr.entlmt_rsn_curr_cat
+    , byr.qualified_oasi_curr
+    , byr.qualified_dib_curr
+    , byr.qualified_esrd_curr
+    , byr.esrd_bool
+    , byr.enrolled_part_c
+    , byr.crnt_bic_cat
+    , byr.is_primary_claimant
+    , byr.has_rds_cvrg
+--benefits monthly fields 
+    , bm.has_ptc_for_month
+    , bm.has_ptd_for_month
+    , bm.has_employer_subsidy_for_month
+    , bm.month_dual_status_code_clean
+    , bm.has_full_dual_status
+    , bm.has_partial_dual_status
+    , bm.is_qmb_only
+    , bm.cost_share_premium_subsidy_percent
+    , bm.cost_share_copay_cat
+--pde measures
+    , pde.qty_dspnsd_num
+    , pde.days_suply_num
+    , pde.gdc_abv_oopt_amt
+    , pde.gdc_blw_oopt_amt
+    , pde.plro_amt
+    , pde.patient_total_liability
+    , pde.cvrd_d_plan_pd_amt
+    , pde.tot_rx_cst_amt
+--beneficiary and location measures
+    , round(date_diff(pde.srvc_dt,bl.bene_birth_dt,day)/365,1)   as beneficiary_age_at_service
+    , date_diff(pde.srvc_dt, bl.covstart,year)                   as length_of_coverage_at_service_in_years   
+--benefits yearly measures
+    , byr.bene_hi_cvrage_tot_mons
+    , byr.bene_smi_cvrage_tot_mons
+    , byr.ptd_plan_cvrg_mons
+    , byr.bene_state_buyin_tot_mons
+    , byr.bene_hmo_cvrage_tot_mons
+    , byr.rds_cvrg_mons
+--ids without dimensions
+    , pde.prscrbr_id
+    , pde.prod_srvc_id
+from ${ref("dim_part_d_events")} pde 
+inner join ${ref("dim_beneficiaries_with_locations")} bl 
+    on pde.bene_location_key = bl.bene_location_key
+inner join ${ref("dim_benefits_yearly")} byr 
+    on pde.benefit_yr_key = byr.benefit_yr_key
+inner join ${ref("dim_benefits_monthly")} bm 
+    on pde.benefits_mth_key = bm.benefit_mth_key

@@ -1,0 +1,66 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Intermediary data cleaning of census-only data",
+  assertions: {
+    nonNull: ["census_key"],
+    uniqueKey: ["census_key"]
+  }
+}
+
+select 
+      sha256(concat(cast(year as string),cast(zip_code as string)))         as census_key
+    , year                                                                  as census_year
+    , lpad(cast(zip_code as string),5,'0')                                  as zip_five
+    , coalesce(class_of_worker_civilian_pct,0)                              as class_of_worker_civilian_pct
+    , coalesce(class_of_worker_government_pct,0.0)                          as class_of_worker_government_pct
+    , coalesce(class_of_worker_private_wage_pct,0.0)                        as class_of_worker_private_wage_pct
+    , coalesce(class_of_worker_self_employed_pct,0.0)                       as class_of_worker_self_employed_pct
+    , coalesce(class_of_worker_unpaid_family_pct,0.0)                       as class_of_worker_unpaid_family_pct
+    , coalesce(`commute_carpooled_pct  `,0.0)                                   as commute_carpooled_pct
+    , coalesce(`commute_drove_alone_pct  `,0.0)                                 as commute_drove_alone_pct
+    , coalesce(`commute_mean_travel_time_min  `,0)                              as commute_mean_travel_time_min
+    , coalesce(`commute_other_means_pct  `,0.0)                                 as commute_other_means_pct
+    , coalesce(`commute_public_transport_pct  `,0.0)                            as commute_public_transport_pct
+    , coalesce(`commute_walked_pct  `,0.0)                                      as commute_walked_pct
+    , coalesce(`commute_worked_at_home_pct  `,0.0)                              as commute_worked_at_home_pct
+    , coalesce(`commute_workers_total_pct  `,0)                                 as commute_workers_total_pct
+    , coalesce(`employment_children_6_17_parents_labor_force_pct  `,0.0)        as employment_children_6_17_parents_labor_force_pct
+    , coalesce(`employment_children_6_17_pct  `,0)                              as employment_children_6_17_pct 
+    , coalesce(`employment_children_under_6_parents_labor_force_pct  `,0.0)     as employment_children_under_6_parents_labor_force_pct 
+    , coalesce(`employment_children_under_6_pct  `,0)                           as employment_children_under_6_pct 
+    , coalesce(`employment_civilian_labor_force_pct  `,0)                       as employment_civilian_labor_force_pct 
+    , coalesce(`employment_females_16_over_civilian_labor_force_pct  `,0.0)     as employment_females_16_over_civilian_labor_force_pct 
+    , coalesce(`employment_females_16_over_labor_force_pct  `,0.0)              as employment_females_16_over_labor_force_pct 
+    , coalesce(`employment_females_16_over_pct  `,0)                            as employment_females_16_over_pct 
+    , coalesce(`employment_population_16_over_armed_forces_pct  `,0.0)          as employment_population_16_over_armed_forces_pct
+    , coalesce(`employment_population_16_over_civilian_labor_force_pct  `,0.0)  as employment_16_over_civilian_labor_force_pct 
+    , coalesce(`employment_population_16_over_employed_pct  `,0.0)              as employment_population_16_over_employed_pct 
+    , coalesce(`employment_population_16_over_not_labor_force_pct  `,0.0)       as employment_population_16_over_not_labor_force_pct 
+    , coalesce(`employment_population_16_over_pct  `,0)                         as employment_population_16_over_pct 
+    , coalesce(`employment_population_16_over_unemployed_pct  `,0.0)            as employment_population_16_over_unemployed_pct 
+    , coalesce(`employment_unemployment_rate_pct  `,0.0)                        as employment_unemployment_rate_pct 
+    , coalesce(`health_insurance_civilian_18_64_employed_no_insurance_pct  `,0.0) as health_insurance_civilian_18_64_employed_no_insurance_pct 
+    , coalesce(`health_insurance_civilian_18_64_employed_pct  `,0)              as health_insurance_civilian_18_64_employed_pct 
+    , coalesce(`health_insurance_civilian_18_64_employed_private_pct  `,0.0)    as health_insurance_civilian_18_64_employed_private_pct
+    , coalesce(`health_insurance_civilian_18_64_employed_public_pct  `,0.0)     as health_insurance_civilian_18_64_employed_public_pct
+    , coalesce(`health_insurance_civilian_18_64_employed_with_insurance_pct  `,0.0) as health_insurance_civilian_18_64_employed_with_insurance_pct
+    , coalesce(`health_insurance_civilian_18_64_labor_force_pct  `,0)           as health_insurance_civilian_18_64_labor_force_pct
+    , coalesce(`health_insurance_civilian_18_64_not_labor_force_no_insurance_pct  `,0.0) as health_insurance_civilian_18_64_not_labor_force_no_insurance_pct
+    , coalesce(`health_insurance_civilian_18_64_not_labor_force_pct  `,0)       as health_insurance_civilian_18_64_not_labor_force_pct 
+    , coalesce(`health_insurance_civilian_18_64_not_labor_force_private_pct  `,0.0) as health_insurance_civilian_18_64_not_labor_force_private_pct
+    , coalesce(`health_insurance_civilian_18_64_not_labor_force_public_pct  `,0.0) as health_insurance_civilian_18_64_not_labor_force_public_pct
+    , coalesce(`health_insurance_civilian_18_64_not_labor_force_with_insurance_pct  `,0.0) as health_insurance_civilian_18_64_not_labor_force_with_insurance_pct
+    , coalesce(`health_insurance_civilian_18_64_pct  `,0)                       as health_insurance_civilian_18_64_pct 
+    , coalesce(`health_insurance_civilian_18_64_unemployed_no_insurance_pct  `,0.0) as health_insurance_civilian_18_64_unemployed_no_insurance_pct
+    , coalesce(`health_insurance_civilian_18_64_unemployed_pct  `,0)            as health_insurance_civilian_18_64_unemployed_pct
+    , coalesce(`health_insurance_civilian_18_64_unemployed_private_pct  `,0.0)  as health_insurance_civilian_18_64_unemployed_private_pct
+    , coalesce(`health_insurance_civilian_18_64_unemployed_public_pct  `,0.0)   as health_insurance_civilian_18_64_unemployed_public_pct
+    , coalesce(`health_insurance_civilian_18_64_unemployed_with_insurance_pct  `,0.0)   as health_insurance_civilian_18_64_unemployed_with_insurance_pct
+    , coalesce(`health_insurance_civilian_population_pct  `,0)                  as health_insurance_civilian_population_pct
+    , coalesce(`health_insurance_civilian_under_18_no_insurance_pct  `,0.0)     as health_insurance_civilian_under_18_no_insurance_pct
+    , coalesce(`health_insurance_civilian_under_18_pct  `,0)                    as health_insurance_civilian_under_18_pct
+    --, state. --already have in dim_locations
+from ${ref("census_data_15_23")}  
+where year is not null 
+    and zip_code is not null

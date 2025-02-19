@@ -1,0 +1,203 @@
+config {
+  type: "table",
+  schema: "capstone_intermediaries",
+  description: "Initial cleaning of claims data - SNF file",
+  assertions: {
+    nonNull: ["clm_id"],
+    uniqueKey: ["clm_id"]
+  }
+}
+
+--bringing in claim-level-only rows, do a group by all to aggregate. 
+--Awkward but this table is at the line level instead of claim
+
+--note that not all fields are used in all files, 
+--so each file's interim processing may have manually-entered placeholders rendering to null, False, or 0 
+--depending on data type
+
+select 
+      clm_id 
+    , bene_id
+    , 'SNF'                                           as claim_file
+    , 'Non-swing SNF'                                 as nch_clm_type_cat
+    , case 
+        when nch_near_line_rec_ident_cd = 'M'
+          then 'Regional carrier DMEPOS processed'
+        when nch_near_line_rec_ident_cd = 'O'
+          then 'Local carrier processed'
+        when nch_near_line_rec_ident_cd = 'U'
+          then 'Part A/B HHA'
+        when nch_near_line_rec_ident_cd = 'V'
+          then 'Part A only ICR'
+        when nch_near_line_rec_ident_cd = 'W'
+          then 'Part B only ICR'
+        else 'No Claim Processing type'
+        end                                           as claim_processing_type
+    , False                                           as is_inpatient_claim 
+    , False                                           as is_outpatient_claim
+    , False                                           as is_durable_medical_equipment_claim
+    , False                                           as is_hospice_claim
+    , False                                           as is_home_health_agency_claim
+    , True                                            as is_skilled_nursing_facility_claim
+    , clm_from_dt
+    , clm_thru_dt
+    , extract(year from clm_from_dt)        as claim_start_year
+    , extract(year from clm_thru_dt)        as claim_end_year
+    , date_diff(clm_thru_dt,clm_from_dt,day) as claim_duration_in_days
+    , clm_pmt_amt
+    --add percentile rankings in interim step after all claims are combined, then join to dimension
+    , False                                 as carr_clm_prvdr_asgnmt_bool
+    , prncpal_dgns_cd
+    --count diagnoses: calculate in interim step after walk, then join to dimension
+    , "N/A"                                 as clm_clncl_tril_num
+    , False                                 as claim_part_of_clinical_trial
+    , org_npi_num
+    , 'SNF'                                 as clm_fac_type_cat
+    , False                                 as claim_is_in_hospital
+    , 'Inpatient'                           as clm_srvc_clsfctn_type_cat
+    , case 
+        when clm_freq_cd = 1 
+          then 'Admit Through Discharge'
+        when clm_freq_cd = 9 
+          then 'Final Claim'
+        else 'No Claim Frequency'                  
+        end                                 as clm_freq_cat
+    , 'No Nonpayment Reason'                as clm_mdcr_non_pmt_rsn_cat --do not include in final dimension, always null
+    , False                                 as medicare_will_not_pay --do not include in final dimension, always false
+    , case 
+        when ptnt_dschrg_stus_cd = 1 
+          then 'Home/Self Care'
+        else 'No Discharge Status'                 
+        end                                 as ptnt_dschrg_stus_cat
+    , True                                  as patient_discharged
+    , False                                 as patient_died_during_claim_period
+    , False                                 as patient_remains_in_care_after_claim_period
+    , case 
+        when clm_pps_ind_cd = '2' 
+          then True 
+        else False 
+        end                                 as clm_pps_bool
+    , clm_tot_chrg_amt
+    , "N/A"                                 as fst_dgns_e_cd 
+    , False                                 as claim_has_external_cause 
+    , 0                                     as clm_hha_tot_visit_cnt
+    , cast(null as date)                    as clm_admsn_dt 
+    , cast(null as integer)                 as rev_cntr_1st_ansi_cd 
+    , cast(null as integer)                 as rev_cntr_apc_hipps_cd 
+    , clm_utlztn_day_cnt 
+    , nch_bene_dschrg_dt   
+    , cast(null as date)                    as clm_hospc_start_dt_id 
+    , case 
+        when clm_mco_pd_sw = 1
+          then True 
+        else False 
+        end                                 as clm_mco_pd_sw
+    , case 
+        when clm_ip_admsn_type_cd = 1
+          then True 
+        else False 
+        end                                 as admission_is_emergency
+    , case 
+        when clm_ip_admsn_type_cd = 2
+          then True 
+        else False 
+        end                                 as admission_is_urgent
+    , case 
+        when clm_ip_admsn_type_cd = 5
+          then True 
+        else False 
+        end                                 as admission_is_to_trauma_center
+    , case 
+        when clm_ip_admsn_type_cd = 3
+          then True 
+        else False 
+        end                                 as admission_is_elective
+    , case 
+        when clm_src_ip_admsn_cd = 1
+          then 'Physician Referral'
+        when clm_src_ip_admsn_cd = 2 
+          then 'Clinic Referral'
+        when clm_src_ip_admsn_cd = 4 
+          then 'Transfer from Hospital'
+        when clm_src_ip_admsn_cd = 5
+          then 'Transfer from SNF'
+        else 'No Inpatient Admission Source'       
+        end                                 as clm_src_ip_admsn_cat       
+    , 0                                     as clm_pass_thru_per_diem_amt
+    , nch_bene_ip_ddctbl_amt 
+    , nch_bene_pta_coinsrnc_lblty_am
+    , nch_bene_blood_ddctbl_lblty_am 
+    , 0                                     as nch_profnl_cmpnt_chrg_amt 
+    , 0                                     as clm_tot_pps_cptl_amt 
+    , clm_pps_cptl_dsprprtnt_shr_amt        as clm_pps_cptl_dsprptnt_shr_amt
+    , clm_pps_cptl_excptn_amt
+    , clm_pps_cptl_fsp_amt
+    , clm_pps_cptl_ime_amt 
+    , clm_pps_cptl_outlier_amt 
+    , clm_pps_old_cptl_hld_hrmls_amt        as clm_pps_old_cplt_hld_hrmls_amt
+    , 0                                     as clm_pps_cptl_drg_wt_num
+    , bene_tot_coinsrnc_days_cnt 
+    , clm_non_utlztn_days_cnt 
+    , nch_blood_pnts_frnshd_qty
+    , cast(nch_vrfd_ncvrd_stay_from_dt as date) as nch_vrfd_ncvrd_stay_from_dt
+    , cast(nch_vrfd_ncvrd_stay_thru_dt as date) as nch_vrfd_ncvrd_stay_thru_dt
+    , cast(nch_bene_mdcr_bnfts_exhtd_dt_i as date)  as nch_bene_mdcr_bnfts_extd_dt_i
+    , 'No Outlier'                          as clm_drg_outlier_stay_cat
+    , 0                                     as nch_drg_outlier_aprvd_pmt_amt 
+    , admtg_dgns_cd 
+    , 0                                     as ime_op_clm_val_amt 
+    , 0                                     as dsh_op_clm_val_amt 
+    , 0                                     as clm_uncompd_care_pmt_amt 
+    , 0                                     as nch_bene_ptb_coinsrnc_amt 
+    , 0                                     as nch_bene_partb_ddctbl_amt 
+    , 0                                     as clm_op_bene_pmt_amt 
+    , 0                                     as clm_op_prvdr_pmt_amt
+    , cast(null as date)                    as nch_qlfyd_stay_from_dt 
+    , cast(null as date)                    as nch_qlfyd_stay_thru_dt --do qualified_stay_duration in dimension
+    , 0                                     as nch_carr_clm_sbmtd_chrg_amt 
+    , 0                                     as nch_clm_bene_pmt_amt 
+    , 0                                     as nch_clm_prvdr_pmt_amt
+    , nch_ip_ncvrd_chrg_amt 
+    , 0                                     as carr_clm_cash_ddctbl_apld_amt 
+    , 0                                     as nch_carr_clm_alowd_amt 
+    , nch_prmry_pyr_clm_pd_amt
+          --diagnoses fields, used only in walk (not main claims fact)
+    , icd_dgns_cd1
+    , icd_dgns_cd2
+    , icd_dgns_cd3
+    , icd_dgns_cd4
+    , icd_dgns_cd5
+    , icd_dgns_cd6
+    , icd_dgns_cd7
+    , icd_dgns_cd8
+    , icd_dgns_cd9
+    , icd_dgns_cd10
+    , icd_dgns_cd11
+    , icd_dgns_cd12
+    , icd_dgns_cd13
+    , icd_dgns_cd14
+    , icd_dgns_cd15
+    , icd_dgns_cd16
+    , icd_dgns_cd17
+    , icd_dgns_cd18
+    , icd_dgns_cd19
+    , icd_dgns_cd20
+    , icd_dgns_cd21
+    , icd_dgns_cd22
+    , icd_dgns_cd23
+    , icd_dgns_cd24
+    , icd_dgns_cd25
+    , icd_dgns_e_cd1
+    , icd_dgns_e_cd2
+    , icd_dgns_e_cd3
+    , icd_dgns_e_cd4
+    , icd_dgns_e_cd5
+    , icd_dgns_e_cd6
+    , icd_dgns_e_cd7
+    , icd_dgns_e_cd8
+    , icd_dgns_e_cd9
+    , icd_dgns_e_cd10
+    , icd_dgns_e_cd11
+    , icd_dgns_e_cd12
+from ${ref("clm_snf")} 
+group by all 
